@@ -1,11 +1,11 @@
-# Config Studio — Документация по разработке плагинов 🧩
+﻿# Config Studio — Документация по разработке плагинов 🧩
 
-[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.0.0--beta-teal.svg)](https://github.com/EdvardBaldanov/config-studio)
+[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.0.0--beta-teal.svg)](https://github.com/config-studio/config-studio)
 [![Plugin Format](https://img.shields.io/badge/Format-.cspkg%20%7C%20ZIP-blue.svg)](docs/07-packaging-and-publishing.md)
 [![Security: Zero Trust](https://img.shields.io/badge/Security-Zero%20Trust%20%7C%20Fail--Secure-rose.svg)](docs/06-terminal-and-security.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Официальное руководство, спецификации манифеста, справочник JavaScript API, типовые шаблоны и система безопасности для создания плагинов к [Config Studio](https://github.com/EdvardBaldanov/config-studio).
+Официальное руководство, спецификации манифеста, справочник JavaScript API, типовые шаблоны и система безопасности для создания плагинов к [Config Studio](https://github.com/config-studio/config-studio).
 
 ---
 
@@ -84,8 +84,8 @@ Config Studio реализует строгую модель безопасно�
 
 ## 📦 Способы распространения и установки
 
-1. **В 1 клик из каталога:** Через окно настроек из официального каталога [config-studio-plugins](https://github.com/EdvardBaldanov/config-studio-plugins).
-2. **Бинарный пакет `.cspkg` (v1.9.5+):** Сверхбыстрый монолитный контейнер (по принципу MRS из Clash.Meta), читаемый ядром прямо в память без распаковки на диск. Собирается автономным CLI-компилятором `cspkg` ([скачать бинарники](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/tag/v1.0.0)).
+1. **В 1 клик из каталога:** Через окно настроек из официального каталога [config-studio-plugins](https://github.com/config-studio/config-studio-plugins).
+2. **Бинарный пакет `.cspkg` (v1.9.5+):** Сверхбыстрый монолитный контейнер (по принципу MRS из Clash.Meta), читаемый ядром прямо в память без распаковки на диск. Собирается автономным CLI-компилятором `cspkg` ([скачать бинарники](https://github.com/config-studio/config-studio-plugin-docs/releases/tag/v1.0.0)).
 3. **Автоматизация через GitHub Actions:** Готовый workflow `.github/workflows/release.yml` для автоматической компиляции и прикрепления `.cspkg` к релизам тегов `v*`.
 4. **По ссылке на GitHub:** Автоматическая безопасная инспекция и установка из репозитория.
 5. **ZIP-архив:** Установка перетаскиванием (drag-and-drop) в интерфейс.

@@ -1,6 +1,6 @@
-/**
+﻿/**
  * Config Studio Plugin Starter Template
- * Documentation: https://github.com/EdvardBaldanov/config-studio-plugin-docs
+ * Documentation: https://github.com/config-studio/config-studio-plugin-docs
  */
 (function() {
   const pluginId = 'my-awesome-plugin';

@@ -1,4 +1,4 @@
-# Упаковка, Публикация и Бинарный формат .cspkg 📦
+﻿# Упаковка, Публикация и Бинарный формат .cspkg 📦
 
 Когда ваш плагин готов, вы можете распространять его среди пользователей через официальный каталог, прямые ссылки на GitHub, ZIP-архивы или современный бинарный пакет `.cspkg`.
 
@@ -60,18 +60,18 @@ Config Studio поддерживает перенос окружения меж�
 
 ### Скачивание автономного компилятора `cspkg`
 
-Готовые исполняемые файлы компилятора доступны в [Релизах репозитория документации](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/tag/v1.0.0):
+Готовые исполняемые файлы компилятора доступны в [Релизах репозитория документации](https://github.com/config-studio/config-studio-plugin-docs/releases/tag/v1.0.0):
 
 | Платформа | Ссылка на скачивание |
 | :--- | :--- |
-| **Windows x64** | [`cspkg-windows-amd64.exe`](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-windows-amd64.exe) |
-| **Linux x64** | [`cspkg-linux-amd64`](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64) |
-| **macOS Apple Silicon (M1/M2/M3)** | [`cspkg-darwin-arm64`](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-darwin-arm64) |
-| **macOS Intel x64** | [`cspkg-darwin-amd64`](https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-darwin-amd64) |
+| **Windows x64** | [`cspkg-windows-amd64.exe`](https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-windows-amd64.exe) |
+| **Linux x64** | [`cspkg-linux-amd64`](https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64) |
+| **macOS Apple Silicon (M1/M2/M3)** | [`cspkg-darwin-arm64`](https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-darwin-arm64) |
+| **macOS Intel x64** | [`cspkg-darwin-amd64`](https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-darwin-amd64) |
 
 #### Быстрая установка на Linux / macOS:
 ```bash
-sudo curl -sSL -f https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64 -o /usr/local/bin/cspkg
+sudo curl -sSL -f https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64 -o /usr/local/bin/cspkg
 sudo chmod +x /usr/local/bin/cspkg
 cspkg version
 ```
@@ -123,7 +123,7 @@ jobs:
 
       - name: Install cspkg packager
         run: |
-          sudo curl -sSL -f https://github.com/EdvardBaldanov/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64 -o /usr/local/bin/cspkg
+          sudo curl -sSL -f https://github.com/config-studio/config-studio-plugin-docs/releases/download/v1.0.0/cspkg-linux-amd64 -o /usr/local/bin/cspkg
           sudo chmod +x /usr/local/bin/cspkg
           cspkg version
 
@@ -166,12 +166,12 @@ jobs:
 
 ## 6. Добавление плагина в Официальный Каталог
 
-Центральный каталог расширений Config Studio работает на базе **GitHub Pages** в репозитории [config-studio-plugins](https://github.com/EdvardBaldanov/config-studio-plugins).
+Центральный каталог расширений Config Studio работает на базе **GitHub Pages** в репозитории [config-studio-plugins](https://github.com/config-studio/config-studio-plugins).
 
 Каталог хранит легковесный индекс `registry.json` и выступает указателем на последний релиз каждого расширения. Таким образом, плагины развиваются полностью независимо в собственных репозиториях.
 
 ### Как добавить свой плагин:
-Создайте Pull Request в репозиторий [config-studio-plugins](https://github.com/EdvardBaldanov/config-studio-plugins), добавив ваш плагин в `registry.json`:
+Создайте Pull Request в репозиторий [config-studio-plugins](https://github.com/config-studio/config-studio-plugins), добавив ваш плагин в `registry.json`:
 
 ```json
 {
