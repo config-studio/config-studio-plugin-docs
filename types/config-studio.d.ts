@@ -236,6 +236,43 @@ export interface I18nAPI {
   onLanguageChange(callback: (lang: string) => void): () => void;
 }
 
+export interface SysInfoData {
+  hostId: string;
+  hostName: string;
+  os: string;
+  platform: string;
+  arch: string;
+  uptimeSeconds: number;
+  cpu: {
+    cores: number;
+    usagePercent: number;
+    model?: string;
+  };
+  memory: {
+    totalBytes: number;
+    usedBytes: number;
+    freeBytes: number;
+    usedPercent: number;
+  };
+  disks: Array<{
+    mountPoint: string;
+    totalBytes: number;
+    freeBytes: number;
+    usedBytes: number;
+    usedPercent: number;
+  }>;
+  collectedAt: string;
+}
+
+export interface SysInfoAPI {
+  get(serverId?: string): Promise<SysInfoData>;
+  refresh(): Promise<SysInfoData>;
+}
+
+export interface TelemetryAPI {
+  track(event: string, properties?: Record<string, any>): void;
+}
+
 export interface ConfigStudioAPI {
   // UI Panels & Customization
   registerToolbarButton(btn: ToolbarButtonDef): void;
@@ -274,12 +311,18 @@ export interface ConfigStudioAPI {
   // Localization & Translations
   i18n: I18nAPI;
 
+  // Hardware Telemetry & Monitoring (Core v2.1+)
+  sysinfo?: SysInfoAPI;
+
+  // Observability & Telemetry
+  telemetry?: TelemetryAPI;
+
   // Plugin Settings & Configuration
   registerPluginSettings(pluginId: string, renderer: (container: HTMLElement) => void): void;
   getPluginSettings(pluginId: string): Promise<Record<string, any>>;
   savePluginSettings(pluginId: string, settings: Record<string, any>): Promise<void>;
 
-  // UI & Design System
+  // UI & Design System (@config-studio/ui)
   ui: {
     toast(message: string, type?: 'info' | 'success' | 'error' | 'warning', title?: string): void;
   };

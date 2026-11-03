@@ -127,7 +127,7 @@ window.ConfigStudio.toggleSplitPanel({
 ```javascript
 window.ConfigStudio.registerHeaderItem({
   id: 'fleet-status',
-  pluginId: 'remote-agent',
+  pluginId: 'servers',
   order: 5,
   render: (container) => {
     container.innerHTML = `
@@ -220,6 +220,32 @@ window.ConfigStudio.registerPluginSettings('my-plugin', (container) => {
 const settings = await window.ConfigStudio.getPluginSettings('my-plugin');
 await window.ConfigStudio.savePluginSettings('my-plugin', { autoReload: false });
 ```
+
+---
+
+## 8. Дизайн-система `@config-studio/ui` и канонические модальные окна
+
+Начиная с **v2.0 / v2.1**, интерфейс редактора и официальных плагинов стандартизирован на базе единой дизайн-системы **`@config-studio/ui`**.
+
+### Эталонные размеры модальных окон
+Модальные окна плагинов должны следовать стандартной сетке размеров вместо случайных значений:
+
+| Класс | Ширина | Назначение |
+|---|---|---|
+| `cs-modal-sm` | `400px` | Простые диалоги подтверждения, короткие вопросы |
+| `cs-modal-md` | `540px` | Компактные формы (2–4 поля), подключение серверов, токены |
+| `cs-modal-lg` | `720px` | Вкладочные формы, детальные настройки узла, инвентарь |
+| `cs-modal-xl` | `900px` | Сложные многоколоночные формы, детальные таблицы |
+| `cs-modal-fullscreen` | `100vw / 100vh` | Полноэкранные редакторы и дашборды |
+| `cs-modal-fixed` | `h-[82vh] min-h-[580px] max-h-[820px]` | **Zero-Jitter фиксация высоты** для окон со вкладками |
+
+### Кастомные Dropdown (Селекторы серверов, ключей и режимов)
+Дефолтные браузерные `<select>` заменяются на фирменные Dropdown-компоненты:
+- **Умный авто-разворот (`openUpward`)**: если до нижнего края окна браузера менее `220px`, выпадающее меню автоматически разворачивается вверх.
+- **Человекочитаемые секреты**: формат `Title [ID]` для безопасного и удобного выбора ключей из Core Vault.
+- **Индикаторы и бейджи**: круглые точки статуса подключения (онлайн/офлайн) и бейджи типов (`PASSWORD`, `TOKEN`, `SSH`).
+
+> 🎨 **Интерактивная витрина:** Протестировать все размеры модальных окон, палитру тем и выпадающие списки можно на странице [Витрины дизайн-системы @config-studio/ui](https://config-studio.github.io/config-studio-plugins/ui.html).
 
 ---
 

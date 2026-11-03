@@ -1,6 +1,6 @@
-﻿# Config Studio — Документация по разработке плагинов 🧩
+# Config Studio — Документация по разработке плагинов 🧩
 
-[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.0.0--beta-teal.svg)](https://github.com/config-studio/config-studio)
+[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.1.0-teal.svg)](https://github.com/config-studio/config-studio)
 [![Plugin Format](https://img.shields.io/badge/Format-.cspkg%20%7C%20ZIP-blue.svg)](docs/07-packaging-and-publishing.md)
 [![Security: Zero Trust](https://img.shields.io/badge/Security-Zero%20Trust%20%7C%20Fail--Secure-rose.svg)](docs/06-terminal-and-security.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
