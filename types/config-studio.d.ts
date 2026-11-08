@@ -62,6 +62,12 @@ export interface PluginManifest {
   minAppVersion?: string;
 }
 
+export interface OpenFileOptions {
+  line?: number;
+  column?: number;
+  highlight?: boolean;
+}
+
 export interface OpenFile {
   name: string;
   path: string;
@@ -287,7 +293,7 @@ export interface ConfigStudioAPI {
   getActiveFile(): OpenFile | null;
   getActiveContent(): string;
   setActiveContent(content: string): void;
-  openFile(path: string): Promise<void>;
+  openFile(path: string, options?: OpenFileOptions): Promise<void>;
   createFile(path: string, content?: string): Promise<void>;
   refreshFiles(): Promise<void>;
 
