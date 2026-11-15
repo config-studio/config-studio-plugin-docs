@@ -110,6 +110,53 @@ export interface CustomTabDef {
   onSave?: (content: string) => Promise<void>;
 }
 
+export interface BatchReadOptions {
+  root?: string;
+  paths?: string[];
+  patterns?: string[];
+  pattern?: string;
+  maxFiles?: number;
+  maxSizeBytes?: number;
+}
+
+export interface BatchReadResult {
+  root: string;
+  files: Record<string, string>;
+  errors?: Record<string, string>;
+  count: number;
+  truncated: boolean;
+}
+
+export interface SFTPBatchReadOptions {
+  host: string;
+  port?: number;
+  user?: string;
+  authType?: string;
+  password?: string;
+  privateKey?: string;
+  passphrase?: string;
+  identityId?: string;
+  jumpHost?: any;
+  paths?: string[];
+  patterns?: string[];
+  pattern?: string;
+  baseDir?: string;
+  maxFiles?: number;
+  maxSizeBytes?: number;
+}
+
+export interface SFTPBatchReadResult {
+  files: Record<string, string>;
+  errors?: Record<string, string>;
+  count: number;
+  truncated: boolean;
+}
+
+export interface FsAPI {
+  batchRead(options: BatchReadOptions): Promise<BatchReadResult>;
+  readFile?(path: string, root?: string): Promise<string>;
+}
+
 export interface SplitActionOption {
   id: string;
   label: string;
@@ -528,6 +575,11 @@ export interface ConfigStudioAPI {
   createFile(path: string, content?: string): Promise<void>;
   refreshFiles(): Promise<void>;
   openCustomTab(tab: CustomTabDef): Promise<void>;
+
+  // File System & Batch Operations
+  fs: FsAPI;
+  batchReadFiles(options: BatchReadOptions): Promise<BatchReadResult>;
+  sftpBatchRead(options: SFTPBatchReadOptions): Promise<SFTPBatchReadResult>;
 
   // Native SSH / SFTP Integration
   openTerminal(host?: SSHHost | any): void;
