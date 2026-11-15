@@ -241,11 +241,11 @@ window.ConfigStudio.services.register('ssh', {
   "agent": {
     "version": "2.3.0",
     "binaries": {
-      "linux/amd64": {
+      "linux-amd64": {
         "path": "agents/config-studio-agent-linux-amd64",
         "sha256": "8a0ae2384a275ddfe14a04d207d4b4a1a5b3db5fcbe8273752e5c85b597c2317"
       },
-      "linux/arm64": {
+      "linux-arm64": {
         "path": "agents/config-studio-agent-linux-arm64",
         "sha256": "4722513f56ec56073167b075e8fbe5f8e02d84784b2565ddf905001ff99fa388"
       }
