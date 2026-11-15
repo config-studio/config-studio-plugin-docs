@@ -189,17 +189,27 @@ if (formatter) {
 
 > ⚠️ Требует разрешения `"secrets"` или `"secrets.access"` в манифесте.
 
-Позволяет плагинам безопасно считывать токены, пароли баз данных и приватные SSH-ключи, хранящиеся в системном Keychain ОС или зашифрованном AES-256-GCM Vault:
+Позволяет плагинам безопасно считывать токены, пароли баз данных, приватные SSH-ключи и учетные данные агентов, хранящиеся в системном Keychain ОС или зашифрованном AES-256-GCM Vault.
+
+### Категории секретов:
+- `ssh_key` — приватные ключи OpenSSH для подключения к удаленным серверам.
+- `agent_credentials` *(v2.3.1+)* — выделенная категория для учетных данных удаленных агентов (TOTP-секреты, API-токены, пароли аутентификации демона `config-studio-agent`). Выделяется циановым бейджем `AGENT` в UI.
+- `api_token` — токены доступа внешних сервисов и API.
+- `shared` — общие строковые секреты флота серверов.
 
 ```javascript
-// 1. Получение списка общих секретов флота серверов
+// 1. Получение списка секретов для Remote Agent (приоритетная категория)
+const agentSecrets = await window.ConfigStudio.secrets.list('agent_credentials');
+console.log('Секреты агентов:', agentSecrets); // [{ id: 'agent:debian', label: 'Agent Credentials (debian)', category: 'agent_credentials' }, ...]
+
+// 2. Получение списка общих секретов
 const sharedKeys = await window.ConfigStudio.secrets.listShared();
 console.log('Доступные ключи:', sharedKeys); // ['fleet_ssh_key', 'ci_token']
 
-// 2. Считывание значения защищенного секрета
-const sshKey = await window.ConfigStudio.secrets.get('fleet_ssh_key', 'shared');
-if (sshKey) {
-  // Используем ключ для авторизации...
+// 3. Считывание значения защищенного секрета
+const agentSecret = await window.ConfigStudio.secrets.get('agent:debian', 'agent_credentials');
+if (agentSecret) {
+  // Используем TOTP-секрет для генерации одноразового кода авторизации...
 }
 ```
 
