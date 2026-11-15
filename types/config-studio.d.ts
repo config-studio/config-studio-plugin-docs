@@ -215,8 +215,24 @@ export interface SplitPanelDef {
   id: string;
   pluginId: string;
   title: string;
+  icon?: string;
+  port?: number;
+  url?: string;
+  refreshOnSave?: boolean;
+  onReload?: () => void;
   open: boolean;
   render: (container: HTMLElement) => void;
+}
+
+export interface SplitWebviewDef {
+  id: string;
+  pluginId: string;
+  title: string;
+  url: string;
+  icon?: string;
+  port?: number;
+  refreshOnSave?: boolean;
+  open?: boolean;
 }
 
 export interface BottomPanelDef {
@@ -563,6 +579,11 @@ export interface ConfigStudioAPI {
   contextMenu: ContextMenuAPI;
   registerSplitPanel(panel: SplitPanelDef): void;
   toggleSplitPanel(panelDef: Partial<SplitPanelDef> & { id: string }): void;
+  registerSplitWebview(def: SplitWebviewDef): void;
+  toggleSplitWebview(id: string, updates?: Partial<SplitWebviewDef>): void;
+  closeSplitWebview(id?: string): void;
+  reloadSplitWebview(id?: string): void;
+  setActiveSplitPanel(panelId: string): void;
   registerBottomPanel(panel: BottomPanelDef): void;
   toggleBottomPanel(panelDef: Partial<BottomPanelDef> & { id: string }): void;
   registerHeaderItem(item: HeaderItemDef): void;
