@@ -1,6 +1,6 @@
 # Кастомизация интерфейса и стили (UI Panels & Slots) 🎨
 
-Плагины Config Studio могут бесшовно встраивать кастомные интерфейсы в приложение, поддерживая темную и светлую тему, акцентные цвета и дизайн-систему редактора.
+Плагины Config Studio могут бесшовно встраивать кастомные интерфейсы в приложение, поддерживая темную и светлую тему, акцентные цвета и дизайн-систему редактора **Core Design System v2**.
 
 ---
 
@@ -14,8 +14,8 @@ Config Studio предоставляет **7 официальных слотов
 +-----------------------------------------------------------------------------------+
 | [Toolbar]  [ ▶ Run: build | ▾ ] (Action Toolbar)  |  Quick Jump: [Tag 1] [Tag 2] ...  |
 +-------------+-------------------------------------+-------------------------------+
-| File Tree   | Monaco Code Editor                  | (Split Panel)                 |
-|             |                                     |                               |
+| File Tree   | Monaco Code Editor /                | (Split Panel)                 |
+|             | Custom Tabs (openCustomTab)         |                               |
 | [Right-     |                                     | Live Preview /                |
 | Click       |                                     | Графические формы /           |
 | Context     |                                     | Документация                  |
@@ -57,12 +57,13 @@ Config Studio предоставляет **7 официальных слотов
 window.ConfigStudio.registerContextMenu({
   id: 'git-blame',
   label: 'История изменений (Git Blame)',
-  icon: 'git-commit',
+  icon: 'git-commit', // Lucide icon
   group: 'tools', // 'open' | 'clipboard' | 'tools' | 'edit' | 'danger'
   order: 20,
   fileMatches: ['.yaml', '.json', '.conf'],
   targetType: 'file', // 'file' | 'folder' | 'empty' | 'any'
-  onClick: async (path) => {
+  onClick: async (target) => {
+    const filePath = typeof target === 'string' ? target : target?.path;
     // Вызов команды или открытие панели...
   }
 });
@@ -77,7 +78,47 @@ window.ConfigStudio.registerContextMenu({
 
 ---
 
-## 3. Постоянная нижняя полоса (Bottom Dock Strip)
+## 3. Пользовательские вкладки в редакторе (`openCustomTab`)
+
+Позволяет плагину открывать виртуальные вкладки прямо в главном блоке вкладок редактора наряду с обычными файлами:
+
+```javascript
+await window.ConfigStudio.openCustomTab({
+  path: 'virtual://servers/inventory-preview',
+  name: 'Сводка серверов',
+  language: 'yaml',
+  readOnly: false,
+  badge: 'FLEET',
+  content: '# Сводка парка серверов\ntotal_nodes: 12\nactive: 12\n',
+  onSave: async (content) => {
+    console.log('Сохранено пользователем:', content);
+  }
+});
+```
+
+---
+
+## 4. Сплит-панель (Split Screen Panel)
+
+Монтируется справа от редактора кода. Идеально подходит для:
+- Живого предпросмотра веб-страниц (HTML, PHP, Markdown, SVG).
+- Интерактивных визуализаторов и графических форм.
+
+```javascript
+window.ConfigStudio.toggleSplitPanel({
+  id: 'web-preview',
+  pluginId: 'web-devkit',
+  title: 'Предпросмотр страницы',
+  open: true,
+  render: (container) => {
+    container.innerHTML = '<iframe src="http://localhost:8085" class="w-full h-full border-none"></iframe>';
+  }
+});
+```
+
+---
+
+## 5. Постоянная нижняя полоса (Bottom Dock Strip)
 
 Нижняя панель под Monaco Editor с поддержкой вкладок, плавного drag-ресайза высоты мышью и кнопки разворачивания во весь экран:
 
@@ -96,32 +137,10 @@ window.ConfigStudio.toggleBottomPanel({
   }
 });
 ```
-- Пользователь может сворачивать и разворачивать панель в 1 клик или шорткатом `Ctrl+~` / `Ctrl+J`.
-- В настройках доступен выбор поведения `dockMode`: `auto` (скрывать, когда нет активных плагинов), `always` или `hidden`.
 
 ---
 
-## 4. Сплит-панель (Split Screen Panel)
-
-Монтируется справа от редактора кода. Идеально для:
-- Живого предпросмотра веб-страниц (HTML, PHP, Markdown, SVG).
-- Интерактивных визуализаторов и графических форм.
-
-```javascript
-window.ConfigStudio.toggleSplitPanel({
-  id: 'web-preview',
-  pluginId: 'web-devkit',
-  title: 'Предпросмотр страницы',
-  open: true,
-  render: (container) => {
-    container.innerHTML = '<iframe src="http://localhost:8085" class="w-full h-full border-none"></iframe>';
-  }
-});
-```
-
----
-
-## 5. Элемент шапки (Header Item)
+## 6. Элемент шапки (Header Item)
 
 Компактные виджеты в верхней навигационной строке:
 ```javascript
@@ -142,34 +161,11 @@ window.ConfigStudio.registerHeaderItem({
 
 ---
 
-## 6. Языковые пакеты интерфейса (UI Language Packs)
-
-Плагин может переводить весь интерфейс Config Studio на новый язык:
-
-```json
-"localization": {
-  "code": "es",
-  "name": "Español",
-  "flag": "🇪🇸",
-  "translations": {
-    "settings": "Configuración",
-    "save": "Guardar",
-    "files": "Archivos"
-  }
-}
-```
-
----
-
 ## 7. Панель настроек плагина (Plugin Settings & Preferences)
 
-Начиная с **v1.9.6**, плагины могут предоставлять настройки для пользователей во вкладке настроек редактора **«Настройки плагинов»**.
-
-Доступно два способа настройки:
+Плагины могут предоставлять настройки для пользователей во вкладке настроек редактора **«Настройки плагинов»**.
 
 ### Вариант А: Декларативная схема в `plugin.json` (Автоматическая генерация формы)
-Если плагину требуется лишь набор переключателей, текстовых полей или выпадающих списков, объявите секцию `settings` в манифесте:
-
 ```json
 {
   "settings": [
@@ -199,33 +195,26 @@ window.ConfigStudio.registerHeaderItem({
   ]
 }
 ```
-*Настройки автоматически сохраняются в `data/plugin-settings/<plugin-id>.json` и переносятся с профилем пользователя.*
 
 ### Вариант Б: Кастомный UI рендерер через JS API
-Для сложного интерактивного интерфейса настроек зарегистрируйте рендерер:
-
 ```javascript
-window.ConfigStudio.registerPluginSettings('my-plugin', (container) => {
-  container.innerHTML = `
-    <div class="space-y-4">
-      <h3 class="text-sm font-semibold">Кастомные параметры</h3>
-      <button id="btn-sync" class="px-3 py-1.5 rounded bg-accent text-white">Синхронизировать</button>
-    </div>
-  `;
+window.ConfigStudio.registerPluginSettings('my-plugin', {
+  render: (container) => {
+    container.innerHTML = `
+      <div class="space-y-4">
+        <h4 class="text-sm font-semibold">Кастомные параметры</h4>
+        <button id="btn-sync" class="px-3 py-1.5 rounded-xl bg-accent text-white">Синхронизировать</button>
+      </div>
+    `;
+  }
 });
-```
-
-Чтение и запись сохраненных настроек из JS:
-```javascript
-const settings = await window.ConfigStudio.getPluginSettings('my-plugin');
-await window.ConfigStudio.savePluginSettings('my-plugin', { autoReload: false });
 ```
 
 ---
 
 ## 8. Дизайн-система `@config-studio/ui` и канонические модальные окна
 
-Начиная с **v2.0 / v2.1**, интерфейс редактора и официальных плагинов стандартизирован на базе единой дизайн-системы **`@config-studio/ui`**.
+Интерфейс редактора и официальных плагинов стандартизирован на базе единой дизайн-системы **`@config-studio/ui`**.
 
 ### Эталонные размеры модальных окон
 Модальные окна плагинов должны следовать стандартной сетке размеров вместо случайных значений:
@@ -241,21 +230,35 @@ await window.ConfigStudio.savePluginSettings('my-plugin', { autoReload: false })
 | `cs-modal-fixed` | `h-[82vh] min-h-[580px] max-h-[820px]` | **Zero-Jitter фиксация высоты** для окон со вкладками |
 
 ### Кастомные Dropdown (Селекторы серверов, ключей и режимов)
-Дефолтные браузерные `<select>` заменяются на фирменные Dropdown-компоненты:
+Дефолтные браузерные `<select>` заменяются на фирменные Dropdown-компоненты через `window.ConfigStudio.ui.renderDropdown(container, config)`:
 - **Умный авто-разворот (`openUpward`)**: если до нижнего края окна браузера менее `220px`, выпадающее меню автоматически разворачивается вверх.
-- **Человекочитаемые секреты**: формат `Title [ID]` для безопасного и удобного выбора ключей из Core Vault.
 - **Индикаторы и бейджи**: круглые точки статуса подключения (онлайн/офлайн) и бейджи типов (`PASSWORD`, `TOKEN`, `SSH`).
+- **Поиск (Searchable)**: встроенная фильтрация опций на лету.
 
-> 🎨 **Интерактивная витрина:** Протестировать все размеры модальных окон, палитру тем и выпадающие списки можно на странице [Витрины дизайн-системы @config-studio/ui](https://config-studio.github.io/config-studio-plugins/ui.html).
+```javascript
+const container = document.getElementById('my-dropdown-root');
+const dropdown = window.ConfigStudio.ui.renderDropdown(container, {
+  options: [
+    { value: 'srv-1', label: 'srv-1 (Debian 12)', statusDot: 'online', badge: 'PROD', badgeVariant: 'success' },
+    { value: 'srv-2', label: 'srv-2 (Alpine 3.20)', statusDot: 'offline', badge: 'DEV', badgeVariant: 'warning' }
+  ],
+  value: 'srv-1',
+  searchable: true,
+  placeholder: 'Выберите сервер...',
+  onChange: (value, option) => {
+    console.log('Выбран сервер:', value);
+  }
+});
+```
 
 ---
 
-## 🎨 Переменные CSS и Tailwind CSS
+## 🎨 Переменные CSS и Tailwind CSS (Core Design System v2)
 
 Приложение полностью совместимо со стандартными классами **Tailwind CSS**. Дополнительно доступны глобальные CSS-переменные:
 
 ```css
-var(--bg-base)            /* Основной фон окна */
+var(--bg-base)            /* Основной фон окна (#0d1117 / #ffffff) */
 var(--bg-base-surface)    /* Фон карточек и модальных окон */
 var(--border-base)        /* Цвет разделителей и границ */
 var(--accent-color)       /* Акцентный цвет кнопок (выбирается в настройках) */

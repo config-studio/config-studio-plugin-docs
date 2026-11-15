@@ -39,7 +39,8 @@
       group: 'tools',
       order: 50,
       targetType: 'file',
-      onClick: async (targetPath) => {
+      onClick: async (target) => {
+        const targetPath = typeof target === 'string' ? target : target?.path;
         window.ConfigStudio.showNotification(
           `Context action triggered on: ${targetPath}`,
           'info'
@@ -64,9 +65,12 @@
           </button>
         </div>
       `;
-      container.querySelector(`#${pluginId}-test-btn`).onclick = () => {
-        alert('Button inside custom panel clicked!');
-      };
+      const btn = container.querySelector(`#${pluginId}-test-btn`);
+      if (btn) {
+        btn.onclick = () => {
+          window.ConfigStudio.showNotification('Button inside custom panel clicked!', 'info');
+        };
+      }
     }
   });
 

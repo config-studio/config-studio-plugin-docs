@@ -63,25 +63,36 @@ Config Studio использует ядро **Monaco Editor** (движок VS C
 ## 2. Разработка собственного Outline-провайдера (AST Map)
 
 Config Studio автоматически строит дерево структуры для YAML, JSON, TOML, INI, HTML и PHP.
-С помощью `registerOutlineProvider` плагин может зарегистрировать парсер структуры для **любого другого формата** (SQL, Dockerfile, Nginx, Rust, Go, Python и др.).
+С помощью `registerOutlineProvider` плагин может зарегистрировать парсер структуры для **любого другого формата** (SQL, Dockerfile, Nginx, Rust, Go, Python, Caddy, HAProxy и др.).
 
 ### Формат объекта узла `OutlineNode`:
 ```typescript
 interface OutlineNode {
-  id: string;        // Уникальный ID узла
-  name: string;      // Текст узла (отображается в дереве и на теге Quick Jump)
-  kind: 'object' | 'list' | 'string' | 'number' | 'boolean' | 'section' | 'function' | 'class';
-  line: number;      // 1-based номер строки для перехода
+  id?: string;       // Уникальный ID узла (если опущен, ядро сгенерирует автоматически)
+  label?: string;    // Название узла (отображается в дереве и на теге Quick Jump)
+  name?: string;     // Алиас для label
+  type?: string;     // 'section' | 'function' | 'class' | 'object' | 'list' | 'string' | 'number' | 'boolean'
+  kind?: string;     // Алиас для type
+  line?: number;     // 1-based номер строки для перехода (по умолчанию 1)
   column?: number;   // 1-based номер колонки (опционально)
+  value?: string;    // Краткое превью значения
   children?: OutlineNode[]; // Дочерние узлы вложенной структуры
 }
 ```
+
+### Алгоритм автоматической нормализации ядра Config Studio:
+Ядро Config Studio обеспечивает максимальную устойчивость (Fail-Safe) при парсинге:
+1. **Гибкие имена полей:** если ваш парсер возвращает `name` вместо `label` или `kind` вместо `type`, нормализатор автоматически приводит их к единому стандарту.
+2. **Безопасная обработка ошибок:** если внутри пользовательской функции `parse()` произойдет исключение (Exception), ядро перехватит его, залогирует в консоль и вернет пустой список без падения редактора.
+3. **Автоматический алиасинг расширений:** регистрация провайдера для `yaml` автоматически связывается с `yml` и наоборот.
+
+---
 
 ### Пример: Провайдер структуры для Nginx/Apache конфигов
 
 ```javascript
 window.ConfigStudio.registerOutlineProvider({
-  language: 'nginx', // Язык Monaco или расширение файла (например: '.conf')
+  language: 'nginx', // Язык Monaco или расширение файла (например: 'conf')
   parse: (content, filename) => {
     const nodes = [];
     const lines = content.split('\n');
@@ -94,8 +105,8 @@ window.ConfigStudio.registerOutlineProvider({
       if (trimmed.startsWith('server {') || trimmed === 'server{') {
         nodes.push({
           id: `server-${lineNum}`,
-          name: 'server',
-          kind: 'section',
+          label: 'server',
+          type: 'section',
           line: lineNum
         });
       }
@@ -105,8 +116,8 @@ window.ConfigStudio.registerOutlineProvider({
       if (locMatch) {
         nodes.push({
           id: `loc-${lineNum}`,
-          name: `location ${locMatch[1].trim()}`,
-          kind: 'function',
+          label: `location ${locMatch[1].trim()}`,
+          type: 'function',
           line: lineNum
         });
       }
@@ -116,8 +127,8 @@ window.ConfigStudio.registerOutlineProvider({
       if (upMatch) {
         nodes.push({
           id: `up-${lineNum}`,
-          name: `upstream ${upMatch[1].trim()}`,
-          kind: 'object',
+          label: `upstream ${upMatch[1].trim()}`,
+          type: 'object',
           line: lineNum
         });
       }

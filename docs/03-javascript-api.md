@@ -1,20 +1,25 @@
 # Справочник JavaScript API (`window.ConfigStudio`) 🛠️
 
-Каждый плагин получает доступ к глобальному объекту `window.ConfigStudio`. Это мощный фасад, предоставляющий методы для управления интерфейсом, Monaco Editor, файлами, терминалом, межплагинными сервисами, хранилищем секретов и локализацией.
+Каждый плагин получает доступ к глобальному объекту `window.ConfigStudio`. Это мощный фасад, предоставляющий методы для управления интерфейсом, Monaco Editor, вкладками редактора, нативным SSH/SFTP, терминалом, фоновыми процессами, межплагинными сервисами, хранилищем секретов, мониторингом системы и локализацией.
 
 ---
 
 ## 📑 Содержание
 
-1. [Точки расширения UI (Панели, Тулбар, Меню)](#1-точки-расширения-ui)
-2. [Контекстное меню проводника файлов](#2-контекстное-меню-проводника-файлов)
-3. [Шина межплагинных сервисов (RPC / Proxy Bridge)](#3-шина-межплагинных-сервисов-rpc--proxy-bridge)
-4. [Безопасное хранилище секретов (OS Keychain / Vault)](#4-безопасное-хранилище-секретов-os-keychain--vault)
-5. [Встроенная мультиязычность и переводы (`i18n`)](#5-встроенная-мультиязычность-и-переводы-i18n)
-6. [Работа с открытыми файлами и редактором](#6-работа-с-открытыми-файлами-и-редактором)
-7. [Интеграция с Monaco Editor и AST-картой](#7-интеграция-с-monaco-editor-и-ast-картой)
-8. [Выполнение системных команд на хосте](#8-выполнение-системных-команд-на-хосте)
-9. [События жизненного цикла и уведомления](#9-события-жизненного-цикла-и-уведомления)
+1. [Точки расширения UI (Панели, Тулбар, Меню, Шапка)](#1-точки-расширения-ui)
+2. [Пользовательские вкладки в редакторе (`openCustomTab`)](#2-пользовательские-вкладки-в-редакторе-opencustomtab)
+3. [Нативный SSH и SFTP менеджер хостов](#3-нативный-ssh-и-sftp-менеджер-хостов)
+4. [Контекстное меню проводника файлов](#4-контекстное-меню-проводника-файлов)
+5. [Шина межплагинных сервисов (RPC / Proxy Bridge)](#5-шина-межплагинных-сервисов-rpc--proxy-bridge)
+6. [Безопасное хранилище секретов (OS Keychain / Vault)](#6-безопасное-хранилище-секретов-os-keychain--vault)
+7. [Аппаратный мониторинг и телеметрия серверов (`sysinfo`)](#7-аппаратный-мониторинг-и-телеметрия-серверов-sysinfo)
+8. [Компоненты UI и Дизайн-система (`ui.renderDropdown`, `ui.toast`)](#8-компоненты-ui-и-дизайн-система)
+9. [Встроенная мультиязычность и переводы (`i18n`)](#9-встроенная-мультиязычность-и-переводы-i18n)
+10. [Работа с открытыми файлами и редактором](#10-работа-с-открытыми-файлами-и-редактором)
+11. [Интеграция с Monaco Editor и AST-картой](#11-интеграция-с-monaco-editor-и-ast-картой)
+12. [Выполнение системных команд на хосте](#12-выполнение-системных-команд-на-хосте)
+13. [Параметры и настройки плагина (`registerPluginSettings`)](#13-параметры-и-настройки-плагина)
+14. [Аудит, логирование и телеметрия ошибок](#14-аудит-логирование-и-телеметрия-ошибок)
 
 ---
 
@@ -30,10 +35,9 @@ window.ConfigStudio.registerToolbarButton({
   label: 'Собрать',
   title: 'Запустить сборку проекта (F5)',
   icon: 'play', // Lucide icon
-  visible: () => {
-    const file = window.ConfigStudio.getActiveFile();
-    return file && file.name.endsWith('.yaml');
-  },
+  shortcut: 'F5',
+  fileMatches: ['Makefile', 'docker-compose*.yml'], // Если не указано, наследуется из манифеста
+  visible: (file) => !!file,
   onClick: async () => {
     window.ConfigStudio.showNotification('Сборка запущена...', 'info');
   }
@@ -71,7 +75,7 @@ window.ConfigStudio.toggleBottomPanel({
 ```
 
 ### `registerHeaderItem(itemDef)`
-Встраивает компактный бейдж, кнопку или селектор прямо в верхнюю панель навигации (Header):
+Встраивает компактный бейдж, кнопку или селектор прямо в верхнюю навигационную строку (Header):
 
 ```javascript
 window.ConfigStudio.registerHeaderItem({
@@ -90,9 +94,74 @@ window.ConfigStudio.registerHeaderItem({
 
 ---
 
-## 2. Контекстное меню проводника файлов
+## 2. Пользовательские вкладки в редакторе (`openCustomTab`)
 
-### `registerContextMenu(itemDef)`
+*(Доступно в v2.2.0+)*
+
+Метод `openCustomTab(tab)` позволяет плагину открыть полноценную вкладку прямо в главной области вкладок редактора. Это незаменимо для отображения Diff-сравнений, дашбордов, удаленных файлов по SFTP или виртуальных документов:
+
+```javascript
+await window.ConfigStudio.openCustomTab({
+  path: 'virtual://servers/cluster-status',
+  name: 'Статус кластера',
+  language: 'yaml', // Monaco language для подсветки синтаксиса
+  readOnly: false,
+  badge: 'REMOTE',
+  content: 'cluster:\n  nodes: 5\n  status: healthy\n',
+  onSave: async (newContent) => {
+    console.log('Пользователь нажал Ctrl+S на кастомной вкладке:', newContent);
+    window.ConfigStudio.showNotification('Изменения сохранены!', 'success');
+  }
+});
+```
+
+---
+
+## 3. Нативный SSH и SFTP менеджер хостов
+
+Config Studio включает встроенный SSH-клиент, эмулятор терминала (xterm.js) и двухпанельный SFTP-менеджер файлов. Плагины могут напрямую взаимодействовать с ними:
+
+### Открытие терминала и SFTP:
+```javascript
+// Открыть вкладку SSH-терминала для сервера
+window.ConfigStudio.openTerminal({
+  id: 'srv-prod',
+  name: 'Production Node',
+  host: '192.168.1.100',
+  port: 22,
+  user: 'root'
+});
+
+// Открыть SFTP-браузер файлов для сервера
+window.ConfigStudio.openSftp({
+  id: 'srv-prod',
+  name: 'Production Node',
+  host: '192.168.1.100',
+  port: 22,
+  user: 'root'
+});
+```
+
+### Сервис хостов `window.ConfigStudio.ssh`:
+Предоставляет полный доступ к базе сохраненных серверов:
+- `ssh.list()` — получить массив всех сконфигурированных SSH-узлов.
+- `ssh.get(id)` — получить данные сервера по ID.
+- `ssh.save(host)` — сохранить новый или отредактированный узел в Core Host Storage.
+- `ssh.delete(id)` — удалить сервер из инвентаря.
+- `ssh.subscribe(listener)` — реактивная подписка на изменения списка серверов.
+- `ssh.getLastActiveHostId()` / `ssh.setLastActiveHostId(id)` — получить/установить последний активный хост.
+- `ssh.exportOpenSSH()` — экспорт базы хостов в формат `~/.ssh/config`.
+
+```javascript
+// Пример получения списка хостов
+const hosts = window.ConfigStudio.ssh.list();
+hosts.forEach(h => console.log(`Узел: ${h.name} (${h.host}:${h.port})`));
+```
+
+---
+
+## 4. Контекстное меню проводника файлов
+
 > ⚠️ Требует разрешения `"contextmenu"` в манифесте.
 
 Позволяет плагину добавлять собственные пункты в меню по правому клику мыши на файлы, папки или пустую область дерева файлов:
@@ -107,7 +176,8 @@ window.ConfigStudio.registerContextMenu({
   shortcut: 'Ctrl+Shift+B',
   fileMatches: ['.yaml', '.yml', '.conf', '.env'],
   targetType: 'file', // 'file' | 'folder' | 'empty' | 'any'
-  onClick: async (targetPath, isDir) => {
+  onClick: async (target) => {
+    const targetPath = typeof target === 'string' ? target : target?.path;
     if (!targetPath) return;
     try {
       const content = window.ConfigStudio.getActiveContent();
@@ -115,17 +185,17 @@ window.ConfigStudio.registerContextMenu({
       window.ConfigStudio.showNotification(`Резервная копия создана: ${targetPath}.bak`, 'success');
       await window.ConfigStudio.refreshFiles();
     } catch (e) {
-      window.ConfigStudio.showNotification(`Ошибка создания копии: ${e.message}`, 'error');
+      window.ConfigStudio.showNotification(`Ошибка: ${e.message}`, 'error');
     }
   },
-  isVisible: (targetPath) => targetPath !== undefined,
-  isEnabled: (targetPath) => true
+  isVisible: (target) => !!(typeof target === 'string' ? target : target?.path),
+  isEnabled: () => true
 });
 ```
 
 ---
 
-## 3. Шина межплагинных сервисов (RPC / Proxy Bridge)
+## 5. Шина межплагинных сервисов (RPC / Proxy Bridge)
 
 Config Studio включает высокопроизводительную и безопасную шину для прямого взаимодействия между плагинами.
 
@@ -136,88 +206,147 @@ Config Studio включает высокопроизводительную и �
 // Плагин "ssh-client"
 window.ConfigStudio.services.register('ssh', {
   exec: async (host, cmd) => {
-    console.log(`[SSH Service] Executing on ${host}: ${cmd}`);
-    // Выполнение команды через backend SSH...
     return { exitCode: 0, stdout: 'ok' };
   },
   upload: async (host, localPath, remotePath) => {
-    // Передача файла по SFTP...
     return true;
   }
 }, 'ssh-client');
 ```
 
 ### Для потребителя (Обязательный сервис): `services.get(name, consumerId)`
-Объявите зависимость в `dependencies` (или `optionalDependencies`) и разрешение `service:<name>` в `plugin.json`:
+Объявите зависимость в `dependencies` и разрешение `service:<name>` в `plugin.json`:
 
 ```javascript
 // Плагин "quick-deploy"
-const ssh = window.ConfigStudio.services.get('ssh', 'quick-deploy');
-
+const ssh = await window.ConfigStudio.services.get('ssh', 'quick-deploy');
 const result = await ssh.exec('192.168.1.10', 'docker compose pull');
-window.ConfigStudio.showNotification('Сервер обновлен!', 'success');
+window.ConfigStudio.showNotification('Команда выполнена!', 'success');
 ```
-*Примечание: Если сервис не зарегистрирован или плагин-провайдер отключен, `services.get` выбрасывает исключение `Error`.*
+*Примечание: Если сервис не зарегистрирован или плагин-провайдер отключен, `services.get` выбрасывает исключение.*
 
 ### Для потребителя (Опциональный сервис): `services.getOptional(name, consumerId)` *(v2.0.0+)*
 Используется для мягких зависимостей (`optionalDependencies`), когда плагин может продолжать работать даже без стороннего модуля:
 
 ```javascript
-// Безопасное подключение опционального форматировщика или линтера
 const formatter = await window.ConfigStudio.services.getOptional('yaml-formatter', 'quick-deploy');
 
 if (formatter) {
-  // Расширение установлено и активно: используем продвинутое форматирование
   const formatted = await formatter.format(activeContent);
   window.ConfigStudio.setActiveContent(formatted);
 } else {
-  // Расширение не установлено: работаем в базовом режиме
-  console.log('[quick-deploy] YAML Formatter не обнаружен, используется встроенный режим');
+  console.log('[quick-deploy] YAML Formatter не установлен, используется базовый режим');
 }
 ```
-*Преимущество:* метод **никогда не выбрасывает ошибку** — если плагин не установлен или отключен пользователем, он просто возвращает `null`.
-
-### Вспомогательные методы шины сервисов:
-- `services.has(serviceName)` — возвращает `true`, если сервис с таким именем зарегистрирован и доступен в шине.
-- `services.list()` — возвращает строковый массив всех доступных в данный момент сервисов: `['ssh', 'yaml-formatter', ...]`.
-
-> 🔒 **Защита ядра:** Ядро автоматически блокирует доступ к сервису, если вызывающий плагин не запросил разрешение `service:<name>` в своем манифесте или не указал плагин-провайдер в `dependencies` / `optionalDependencies`.
+*Метод **никогда не выбрасывает ошибку** — если плагин не установлен или отключен, он возвращает `null`.*
 
 ---
 
-## 4. Безопасное хранилище секретов (OS Keychain / Vault)
+## 6. Безопасное хранилище секретов (OS Keychain / Vault)
 
 > ⚠️ Требует разрешения `"secrets"` или `"secrets.access"` в манифесте.
 
-Позволяет плагинам безопасно считывать токены, пароли баз данных, приватные SSH-ключи и учетные данные агентов, хранящиеся в системном Keychain ОС или зашифрованном AES-256-GCM Vault.
+Позволяет плагинам безопасно сохранять и считывать токены, пароли, приватные SSH-ключи и учетные данные агентов, хранящиеся в системном Keychain ОС или зашифрованном AES-256-GCM Vault.
+
+### Методы `window.ConfigStudio.secrets`:
+- `secrets.get(id, scope?)` — получить значение секрета по ID.
+- `secrets.set({ id, label, category, value })` — сохранить или обновить секрет.
+- `secrets.delete(id)` — удалить секрет по ID.
+- `secrets.list(category?)` — получить список метаданных секретов (без значений).
+- `secrets.listShared()` — список названий общих секретов флота.
+- `secrets.getStatus()` — статус хранилища (`backend`, `isAvailable`, `count`, `authEnabled`, `privilegedActive`).
+- `secrets.unlock(password)` — разблокировать хранилище мастер-паролем.
 
 ### Категории секретов:
-- `ssh_key` — приватные ключи OpenSSH для подключения к удаленным серверам.
-- `agent_credentials` *(v2.3.1+)* — выделенная категория для учетных данных удаленных агентов (TOTP-секреты, API-токены, пароли аутентификации демона `config-studio-agent`). Выделяется циановым бейджем `AGENT` в UI.
-- `api_token` — токены доступа внешних сервисов и API.
-- `shared` — общие строковые секреты флота серверов.
+- `agent_credentials` — учетные данные удаленных демонов (`config-studio-agent`).
+- `ssh_key` — приватные ключи OpenSSH.
+- `token` — токены доступа API (GitHub, GitLab, Docker Hub).
+- `password` — пароли баз данных и узлов.
+- `shared` — общие строковые секреты флота.
 
 ```javascript
-// 1. Получение списка секретов для Remote Agent (приоритетная категория)
-const agentSecrets = await window.ConfigStudio.secrets.list('agent_credentials');
-console.log('Секреты агентов:', agentSecrets); // [{ id: 'agent:debian', label: 'Agent Credentials (debian)', category: 'agent_credentials' }, ...]
+// Пример сохранения и чтения секрета
+await window.ConfigStudio.secrets.set({
+  id: 'agent:node-01',
+  label: 'Node 01 Agent Secret',
+  category: 'agent_credentials',
+  value: 'SUPER_SECRET_TOKEN_123'
+});
 
-// 2. Получение списка общих секретов
-const sharedKeys = await window.ConfigStudio.secrets.listShared();
-console.log('Доступные ключи:', sharedKeys); // ['fleet_ssh_key', 'ci_token']
-
-// 3. Считывание значения защищенного секрета
-const agentSecret = await window.ConfigStudio.secrets.get('agent:debian', 'agent_credentials');
-if (agentSecret) {
-  // Используем TOTP-секрет для генерации одноразового кода авторизации...
-}
+const token = await window.ConfigStudio.secrets.get('agent:node-01');
 ```
-
-> 🛡️ **100% Zero-Secret гарантия:** Секреты никогда не попадают в экспортируемые профили настроек (`config-studio-profile.json`) и защищены авторизацией администратора.
 
 ---
 
-## 5. Встроенная мультиязычность и переводы (`i18n`)
+## 7. Аппаратный мониторинг и телеметрия серверов (`sysinfo`)
+
+*(Доступно в v2.1.0+)*
+
+Предоставляет плагинам аппаратные метрики CPU, RAM, дисков и аптайма как для локальной машины, так и для удаленных узлов с установленным агентом:
+
+```javascript
+// 1. Получить текущее состояние телеметрии
+const state = window.ConfigStudio.sysinfo.getState();
+console.log('Активный узел:', state.activeNodeName);
+
+// 2. Получить текущие метрики
+const metrics = window.ConfigStudio.sysinfo.get();
+if (metrics) {
+  console.log(`CPU: ${metrics.cpu.usagePercent.toFixed(1)}% (${metrics.cpu.cores} cores)`);
+  console.log(`RAM: ${window.ConfigStudio.sysinfo.formatBytes(metrics.memory.usedBytes)} / ${window.ConfigStudio.sysinfo.formatBytes(metrics.memory.totalBytes)}`);
+  console.log(`Uptime: ${window.ConfigStudio.sysinfo.formatUptime(metrics.uptimeSeconds)}`);
+}
+
+// 3. Подписка на реактивное обновление метрик
+const unsubscribe = window.ConfigStudio.sysinfo.subscribe((newState) => {
+  if (newState.metrics) {
+    updateHardwareWidget(newState.metrics);
+  }
+});
+
+// 4. Переключение узла для мониторинга
+window.ConfigStudio.sysinfo.setActiveNode('node-02', 'Debian Production');
+```
+
+---
+
+## 8. Компоненты UI и Дизайн-система
+
+### Фирменный Dropdown-компонент (`ui.renderDropdown`)
+Вместо стандартного браузерного `<select>` плагины могут монтировать канонический выпадающий список дизайн-системы Config Studio с поддержкой поиска, статусов и бейджей:
+
+```javascript
+const container = document.getElementById('dropdown-mount');
+
+const controller = window.ConfigStudio.ui.renderDropdown(container, {
+  options: [
+    { value: 'srv-1', label: 'srv-1 (Debian 12)', statusDot: 'online', badge: 'PROD', badgeVariant: 'success' },
+    { value: 'srv-2', label: 'srv-2 (Ubuntu 24)', statusDot: 'offline', badge: 'DEV', badgeVariant: 'warning' }
+  ],
+  value: 'srv-1',
+  searchable: true,
+  searchPlaceholder: 'Поиск сервера...',
+  placeholder: 'Выберите сервер',
+  size: 'md',
+  onChange: (selectedVal, option) => {
+    console.log('Выбран сервер:', selectedVal, option);
+  }
+});
+
+// Управление контроллером программно:
+controller.setValue('srv-2');
+console.log('Текущее значение:', controller.getValue());
+// controller.destroy(); // При размонтировании
+```
+
+### Всплывающие тосты (`ui.toast`)
+```javascript
+window.ConfigStudio.ui.toast('Настройки успешно сохранены', 'success', 'Синхронизация');
+```
+
+---
+
+## 9. Встроенная мультиязычность и переводы (`i18n`)
 
 Плагины могут использовать встроенный движок локализации Config Studio для автоматического перевода интерфейса на язык пользователя:
 
@@ -243,10 +372,10 @@ window.ConfigStudio.i18n.onLanguageChange((newLang) => {
 
 ---
 
-## 6. Работа с открытыми файлами и редактором
+## 10. Работа с открытыми файлами и редактором
 
 ### `getActiveFile()`
-Возвращает объект активного файла: `{ name, path, content, isDirty }` или `null`.
+Возвращает объект активного файла: `{ name, path, content, ext, isDirty }` или `null`.
 
 ### `getActiveContent()` / `setActiveContent(content)`
 Чтение и синхронная замена содержимого активного редактора:
@@ -261,10 +390,10 @@ window.ConfigStudio.setActiveContent(text.trim());
 await window.ConfigStudio.createFile('docker-compose.prod.yml', 'version: "3.8"...');
 ```
 
-### `openFile(path)`
-Открывает файл по относительному пути в новой вкладке редактора:
+### `openFile(path, options?)`
+Открывает файл по пути с возможностью перехода на конкретную строку:
 ```javascript
-await window.ConfigStudio.openFile('configs/nginx.conf');
+await window.ConfigStudio.openFile('configs/nginx.conf', { line: 42, highlight: true });
 ```
 
 ### `refreshFiles()`
@@ -272,36 +401,16 @@ await window.ConfigStudio.openFile('configs/nginx.conf');
 
 ---
 
-## 7. Интеграция с Monaco Editor и AST-картой
+## 11. Интеграция с Monaco Editor и AST-картой
 
 ### `getMonaco()` / `getEditor()`
 Возвращает оригинальные объекты `monaco` и инстанс Monaco Editor для тонкой настройки (курсоры, выделения, маркеры).
 
 ### `registerCompletionProvider(language, provider)`
-Регистрирует подсказки IntelliSense и сниппеты для указанного языка:
-
-```javascript
-const monaco = window.ConfigStudio.getMonaco();
-const kind = monaco ? monaco.languages.CompletionItemKind.Snippet : 27;
-
-window.ConfigStudio.registerCompletionProvider('yaml', {
-  triggerCharacters: [' '],
-  provideCompletionItems: (model, position) => ({
-    suggestions: [
-      {
-        label: 'docker-service',
-        kind: kind,
-        insertText: '${1:service_name}:\n  image: ${2:nginx:alpine}\n  ports:\n    - "${3:80}:${3:80}"',
-        insertTextRules: 4,
-        documentation: 'Сниппет сервиса Docker Compose'
-      }
-    ]
-  })
-});
-```
+Регистрирует подсказки IntelliSense и сниппеты для указанного языка.
 
 ### `registerOutlineProvider(provider)`
-Регистрирует парсер структуры документа для построения AST-карты и Quick Jump тегов:
+Регистрирует кастомный парсер структуры документа для построения AST-карты и Quick Jump тегов:
 
 ```javascript
 window.ConfigStudio.registerOutlineProvider({
@@ -313,8 +422,8 @@ window.ConfigStudio.registerOutlineProvider({
       if (match) {
         nodes.push({
           id: `block-${idx}`,
-          name: `${match[1]} ${match[2]}`.trim(),
-          kind: 'section',
+          label: `${match[1]} ${match[2]}`.trim(),
+          type: 'section',
           line: idx + 1
         });
       }
@@ -323,10 +432,11 @@ window.ConfigStudio.registerOutlineProvider({
   }
 });
 ```
+*Примечание: Встроенный нормализатор автоматически принимает как `label`, так и `name`; как `type`, так и `kind`.*
 
 ---
 
-## 8. Выполнение системных команд на хосте
+## 12. Выполнение системных команд на хосте
 
 > ⚠️ Требует разрешения `"shell.exec"` или `"terminal.exec"`.
 
@@ -369,14 +479,45 @@ await window.ConfigStudio.stopProcess(proc.id);
 
 ---
 
-## 9. События жизненного цикла и уведомления
+## 13. Параметры и настройки плагина
 
-### `showNotification(message, type)`
-Показывает всплывающее уведомление в правом верхнем углу:
-- `type`: `'success'` (зеленое), `'info'` (бирюзовое/синее), `'error'` (красное).
+Плагины могут предоставлять настройки для пользователей в окне настроек редактора:
 
-### `onFileOpen(callback)`
-Срабатывает при переключении вкладки или открытии нового файла.
+```javascript
+// Регистрация кастомного рендерера страницы настроек плагина
+window.ConfigStudio.registerPluginSettings('my-plugin', {
+  render: (container) => {
+    container.innerHTML = `
+      <div class="space-y-4">
+        <h4 class="text-sm font-semibold">Параметры My Plugin</h4>
+        <label class="flex items-center gap-2 text-xs">
+          <input type="checkbox" id="auto-sync-opt" class="rounded border-base">
+          Автосинхронизация при сохранении
+        </label>
+      </div>
+    `;
+  }
+});
 
-### `onFileSave(callback)`
-Срабатывает при успешном сохранении файла на диск (`Ctrl+S` или кнопка сохранения).
+// Чтение и сохранение настроек
+const config = await window.ConfigStudio.getPluginSettings('my-plugin');
+await window.ConfigStudio.savePluginSettings('my-plugin', { autoSync: true });
+```
+
+---
+
+## 14. Аудит, логирование и телеметрия ошибок
+
+Плагины могут фиксировать события в системном журнале и отправлять отчеты об ошибках:
+
+```javascript
+// Запись события в системный журнал Config Studio
+window.ConfigStudio.telemetry.log('plugin_action', { action: 'deploy_started', host: 'node-01' }, 'info');
+
+// Перехват и логирование ошибок
+try {
+  // критическая операция
+} catch (err) {
+  window.ConfigStudio.telemetry.captureError(err, { context: 'deployment_phase' });
+}
+```

@@ -7,6 +7,7 @@
   "icon": "sparkles",
   "entry": "main.js",
   "css": "style.css",
+  "styles": ["style.css"],
   "permissions": [
     "ui.panels",
     "toolbar",
@@ -22,5 +23,5 @@
       "description": "Boilerplate template for Config Studio plugin development"
     }
   },
-  "minAppVersion": "1.9.0"
+  "minAppVersion": "2.0.0"
 }

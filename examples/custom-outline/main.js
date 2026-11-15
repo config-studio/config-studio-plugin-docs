@@ -16,8 +16,8 @@
         if (trimmed.startsWith('server {') || trimmed === 'server{') {
           nodes.push({
             id: `server-${lineNum}`,
-            name: 'server',
-            kind: 'section',
+            label: 'server',
+            type: 'section',
             line: lineNum
           });
         }
@@ -26,8 +26,8 @@
         if (locMatch) {
           nodes.push({
             id: `loc-${lineNum}`,
-            name: `location ${locMatch[1].trim()}`,
-            kind: 'function',
+            label: `location ${locMatch[1].trim()}`,
+            type: 'function',
             line: lineNum
           });
         }
