@@ -1,6 +1,6 @@
 /**
  * TypeScript Definitions for Config Studio Plugin SDK
- * Config Studio v2.3.2+
+ * Config Studio v2.3.5+
  *
  * Use in your plugin development for autocompletion and type checking:
  * /// <reference path="./types/config-studio.d.ts" />
@@ -572,6 +572,48 @@ export interface UIAPI {
   renderDropdown(container: HTMLElement, config: VanillaDropdownConfig): VanillaDropdownController;
 }
 
+export interface LogEntryItem {
+  id: string;
+  timestamp: string;
+  level: 'crit' | 'error' | 'warn' | 'info' | 'debug' | string;
+  source: string;
+  message: string;
+  raw?: string;
+  stream?: 'stdout' | 'stderr';
+}
+
+export interface OpenLogStreamOptions {
+  id?: string;
+  title?: string;
+  source?: string;
+  cmd: string;
+  hostId?: string;
+  sudo?: boolean;
+  tail?: number;
+}
+
+export interface LogStreamSession {
+  id: string;
+  title: string;
+  source: string;
+  cmd: string;
+  hostId?: string;
+  sudo?: boolean;
+  tail?: number;
+  status: 'connecting' | 'connected' | 'paused' | 'error' | 'closed';
+  errorMessage?: string;
+  entries: LogEntryItem[];
+}
+
+export interface LogsAPI {
+  openStream(options: OpenLogStreamOptions): string;
+  closeStream(id: string): void;
+  getSessions(): LogStreamSession[];
+  clear(id: string): void;
+  reconnect(id: string): void;
+  subscribe(callback: (sessions: LogStreamSession[], activeId: string) => void): () => void;
+}
+
 export interface ConfigStudioAPI {
   // UI Panels & Customization
   registerToolbarButton(btn: ToolbarButtonDef): void;
@@ -633,6 +675,9 @@ export interface ConfigStudioAPI {
 
   // Observability & Telemetry
   telemetry: TelemetryAPI;
+
+  // Structured Log Streaming Service (Core v2.3.5+)
+  logs: LogsAPI;
 
   // Plugin Settings & Configuration
   registerPluginSettings(pluginId: string, def: { render: (container: HTMLElement) => void } | ((container: HTMLElement) => void)): void;
