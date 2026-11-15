@@ -567,6 +567,25 @@ export interface VanillaDropdownController {
   destroy: () => void;
 }
 
+export interface FleetServerNode {
+  id: string;
+  name: string;
+  group?: string;
+  tags?: string[];
+  connection?: {
+    ssh?: { enabled?: boolean; host?: string; port?: number; user?: string; identity?: string };
+    agent?: { enabled?: boolean; url?: string; vaultSecret?: string };
+  };
+}
+
+export interface FleetManagerService {
+  getServers(): FleetServerNode[];
+  getActiveServer(): FleetServerNode;
+  switchServer(id: string): void;
+  pingServer(id: string): Promise<{ status: string; ms: number | null; error?: string }>;
+  openBatchInstall(serverIds?: string[]): void;
+}
+
 export interface UIAPI {
   toast(message: string, type?: 'info' | 'success' | 'error' | 'warning', title?: string): void;
   renderDropdown(container: HTMLElement, config: VanillaDropdownConfig): VanillaDropdownController;
