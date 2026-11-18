@@ -23,5 +23,5 @@
       "description": "Boilerplate template for Config Studio plugin development"
     }
   },
-  "minAppVersion": "2.0.0"
+  "minAppVersion": "2.3.6"
 }
