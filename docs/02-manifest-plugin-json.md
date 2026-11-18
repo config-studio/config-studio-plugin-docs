@@ -10,7 +10,7 @@
 {
   "id": "servers",
   "name": "Servers & Fleet Manager",
-  "version": "1.4.0",
+  "version": "1.5.2",
   "description": "Централизованное управление серверами, servers.yaml, нативный SSH/SFTP, встроенный агент и отправка файлов",
   "author": "Config Studio Team",
   "homepage": "https://github.com/config-studio/config-studio-servers",
@@ -75,7 +75,7 @@
       }
     }
   },
-  "minAppVersion": "2.0.0"
+  "minAppVersion": "2.3.6"
 }
 ```
 
@@ -106,7 +106,7 @@
 | `actionToolbar`| `object`| Нет | Конфигурация сплит-кнопки панели действий `[ ▶ Action | ▾ ]`. | См. раздел тулбара |
 | `agent` | `object` | Нет | *(v2.3.1+)* Декларация встроенного удаленного агента (Smart Embedded Agent) для прямой установки из `.cspkg`. | См. раздел встроенного агента |
 | `settings` | `array` | Нет | Декларативная схема параметров конфигурации плагина для авто-генерации UI. | См. раздел настроек плагина |
-| `minAppVersion`| `string`| Нет | Минимальная версия ядра Config Studio для работы плагина. | `"2.0.0"` |
+| `minAppVersion`| `string`| Нет | Минимальная версия ядра Config Studio для работы плагина. | `"2.3.6"` |
 
 ---
 
@@ -221,6 +221,38 @@ window.ConfigStudio.services.register('fleet-manager', {
 }
 ```
 После установки в настройках редактора появится новый пункт выбора языка с флагом `🇩🇪` и бейджем `Pack`.
+
+### 3. Вынесение локализации в `local.json` и `localization.json` (Core v2.3.6+):
+Для сохранения чистоты и компактности `plugin.json` сотни строк переводов больше не нужно держать внутри самого манифеста!
+
+Ядро Config Studio при монтировании папки плагина или пакета `.cspkg` автоматически ищет файлы локализации:
+- `local.json`, `localization.json` или `locale.json` в корне плагина.
+- `locales/<lang>.json` (например, `locales/ru.json`, `locales/en.json`, `locales/de.json`) в папке `locales/`.
+
+#### Поддерживаются два формата `local.json`:
+**Вариант А: Структурированный языковой пакет (`LanguagePackDef`)**
+```json
+{
+  "code": "de",
+  "name": "Deutsch",
+  "flag": "🇩🇪",
+  "translations": {
+    "welcome": "Willkommen",
+    "settings": "Einstellungen",
+    "save": "Speichern"
+  }
+}
+```
+
+**Вариант Б: Плоский словарь переводов (`Flat Map`)**
+```json
+{
+  "welcome": "Willkommen",
+  "settings": "Einstellungen",
+  "save": "Speichern"
+}
+```
+Если в корне плагина с ID `lang-de` лежит плоский `local.json`, ядро автоматически определит код языка `de`, свяжет словарь с именем плагина и зарегистрирует полноценный языковой пакет. Это позволяет легко переводить интерфейс сторонним переводчикам без риска нарушить метаданные плагина.
 
 ---
 

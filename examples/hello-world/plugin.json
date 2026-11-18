@@ -6,5 +6,6 @@
   "author": "Edvard Baldanov",
   "icon": "smile",
   "entry": "main.js",
-  "permissions": ["ui.panels"]
+  "permissions": ["ui.panels"],
+  "minAppVersion": "2.3.6"
 }

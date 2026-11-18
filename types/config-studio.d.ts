@@ -1,6 +1,6 @@
 /**
  * TypeScript Definitions for Config Studio Plugin SDK
- * Config Studio v2.3.5+
+ * Config Studio v2.3.6+
  *
  * Use in your plugin development for autocompletion and type checking:
  * /// <reference path="./types/config-studio.d.ts" />
@@ -54,7 +54,11 @@ export interface LanguagePackDef {
   code: string;
   name: string;
   flag?: string;
-  translations: Record<string, string>;
+  /**
+   * Core UI translations dictionary.
+   * In Config Studio v2.3.6+, can also be externalized into local.json or localization.json.
+   */
+  translations?: Record<string, string>;
 }
 
 export interface PluginManifest {
@@ -75,7 +79,15 @@ export interface PluginManifest {
   optionalDependencies?: Record<string, string>;
   providesServices?: string[];
   settings?: PluginSettingField[];
+  /**
+   * Per-language dictionary for plugin's own UI strings.
+   * Can also be externalized into local.json or localization.json (v2.3.6+).
+   */
   locales?: Record<string, Record<string, string>>;
+  /**
+   * For Core UI language pack plugins.
+   * In v2.3.6+, can be declared here or discovered from local.json / localization.json.
+   */
   localization?: LanguagePackDef;
   actionToolbar?: {
     primaryAction?: string;

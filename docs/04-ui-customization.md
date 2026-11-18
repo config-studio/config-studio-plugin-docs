@@ -98,12 +98,13 @@ await window.ConfigStudio.openCustomTab({
 
 ---
 
-## 4. Сплит-панель (Split Screen Panel)
+## 4. Сплит-панель (Split Screen Panel & Webview)
 
 Монтируется справа от редактора кода. Идеально подходит для:
 - Живого предпросмотра веб-страниц (HTML, PHP, Markdown, SVG).
 - Интерактивных визуализаторов и графических форм.
 
+### Вариант А: Произвольный контейнер через `toggleSplitPanel`
 ```javascript
 window.ConfigStudio.toggleSplitPanel({
   id: 'web-preview',
@@ -114,6 +115,23 @@ window.ConfigStudio.toggleSplitPanel({
     container.innerHTML = '<iframe src="http://localhost:8085" class="w-full h-full border-none"></iframe>';
   }
 });
+```
+
+### Вариант Б: Встроенный Webview-слот через `registerSplitWebview`
+Автоматически создает IFrame с защитой, кнопкой перезагрузки и автообновлением при сохранении редактируемого файла (`refreshOnSave`):
+```javascript
+window.ConfigStudio.registerSplitWebview({
+  id: 'site-preview',
+  pluginId: 'web-devkit',
+  title: 'Предпросмотр сайта (:8085)',
+  url: 'http://localhost:8085',
+  refreshOnSave: true, // перезагрузка при сохранении файлов проекта
+  open: true
+});
+
+// Программное управление
+window.ConfigStudio.reloadSplitWebview('site-preview');
+window.ConfigStudio.closeSplitWebview('site-preview');
 ```
 
 ---

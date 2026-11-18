@@ -7,5 +7,6 @@
   "icon": "terminal",
   "entry": "main.js",
   "css": "style.css",
-  "permissions": ["ui.panels", "terminal.exec", "network.bind"]
+  "permissions": ["ui.panels", "terminal.exec", "network.bind"],
+  "minAppVersion": "2.3.6"
 }

@@ -7,5 +7,6 @@
   "icon": "list",
   "entry": "main.js",
   "permissions": ["ui.panels"],
-  "fileMatches": [".conf", ".nginx"]
+  "fileMatches": [".conf", ".nginx"],
+  "minAppVersion": "2.3.6"
 }

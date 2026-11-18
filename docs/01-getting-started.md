@@ -1,6 +1,6 @@
 # Быстрый старт: Создание первого плагина за 5 минут 🚀
 
-Это руководство поможет вам с нуля создать, протестировать и установить свой первый плагин для **Config Studio / Config Editor** (v2.3.2+).
+Это руководство поможет вам с нуля создать, протестировать и установить свой первый плагин для **Config Studio** (v2.3.6+).
 
 ---
 
@@ -15,6 +15,7 @@ my-first-plugin/
 Опционально можно добавить:
 - `style.css` — кастомные стили (автоматически подключаются в DOM приложения).
 - `README.md` — описание и документация для пользователей.
+- `local.json` / `localization.json` — *(v2.3.6+)* отдельный словарь локализации или языкового пакета без загромождения манифеста.
 - `locales/` — папка со словарями локализации (`ru.json`, `en.json`).
 
 ---
@@ -33,8 +34,9 @@ my-first-plugin/
   "icon": "smile",
   "entry": "main.js",
   "css": "style.css",
+  "styles": ["style.css"],
   "permissions": ["ui.panels", "toolbar"],
-  "minAppVersion": "2.0.0"
+  "minAppVersion": "2.3.6"
 }
 ```
 
@@ -43,7 +45,9 @@ my-first-plugin/
 - `name`: название плагина, отображаемое в интерфейсе и каталоге.
 - `version`: версия по стандарту SemVer (`1.0.0`).
 - `entry`: точка входа JavaScript (относительно корня плагина).
+- `css` / `styles`: пути к подключаемым файлам стилей.
 - `permissions`: список запрашиваемых привилегий. Для элементов интерфейса достаточно `["ui.panels", "toolbar"]`.
+- `minAppVersion`: минимальная совместимая версия ядра Config Studio (`2.3.6`).
 
 ---
 
@@ -82,10 +86,18 @@ my-first-plugin/
     }
   });
 
-  // 2. Подписываемся на событие сохранения файла
-  window.ConfigStudio.onFileSave((file) => {
-    console.log(`[MyFirstPlugin] Файл сохранен: ${file.name}`);
-  });
+  // 2. Хуки жизненного цикла файлов (v2.3.6+)
+  if (typeof window.ConfigStudio.onFileOpen === 'function') {
+    window.ConfigStudio.onFileOpen((file) => {
+      console.log(`[MyFirstPlugin] Файл открыт: ${file.name} (${file.path})`);
+    });
+  }
+
+  if (typeof window.ConfigStudio.onFileSave === 'function') {
+    window.ConfigStudio.onFileSave((file) => {
+      console.log(`[MyFirstPlugin] Файл сохранен: ${file.name}`);
+    });
+  }
 
   console.log('[MyFirstPlugin] Плагин успешно инициализирован!');
 })();

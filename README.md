@@ -1,11 +1,11 @@
 # Config Studio — Документация по разработке плагинов 🧩
 
-[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.3.2-teal.svg)](https://github.com/config-studio/config-studio)
+[![Config Studio](https://img.shields.io/badge/Config--Studio-v2.3.6-teal.svg)](https://github.com/config-studio/config-studio)
 [![Plugin Format](https://img.shields.io/badge/Format-.cspkg%20%7C%20ZIP-blue.svg)](docs/07-packaging-and-publishing.md)
 [![Security: Zero Trust](https://img.shields.io/badge/Security-Zero%20Trust%20%7C%20Fail--Secure-rose.svg)](docs/06-terminal-and-security.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Официальное руководство, спецификации манифеста, справочник JavaScript API, типовые шаблоны и система безопасности для создания плагинов к [Config Studio](https://github.com/config-studio/config-studio).
+Официальное руководство, спецификации манифеста, справочник JavaScript API, типовые шаблоны и система безопасности для создания плагинов к [Config Studio](https://github.com/config-studio/config-studio) (v2.3.6+).
 
 ---
 
@@ -13,13 +13,13 @@
 
 | Раздел | Описание |
 | :--- | :--- |
-| 🚀 [**1. Быстрый старт: Первый плагин за 5 минут**](docs/01-getting-started.md) | Минимальная структура плагина, написание кода и способы локальной установки. |
-| 📄 [**2. Спецификация манифеста `plugin.json`**](docs/02-manifest-plugin-json.md) | Схема полей, зависимости SemVer (`dependencies` и `optionalDependencies`), сервисы (`providesServices`), права, локализация и встроенный агент (`agent`). |
-| 🛠️ [**3. Справочник JavaScript API (`window.ConfigStudio`)**](docs/03-javascript-api.md) | Все доступные методы: файлы, кастомные вкладки (`openCustomTab`), нативный SSH/SFTP, Monaco Editor, контекстное меню, межплагинные сервисы, хранилище секретов (`secrets`), аппаратные метрики (`sysinfo`), компоненты (`ui.renderDropdown`) и `i18n`. |
-| 🎨 [**4. Кастомизация интерфейса и точки расширения**](docs/04-ui-customization.md) | 1-Click Action Toolbar (Split Button), контекстное меню, кастомные вкладки, постоянная нижняя панель (Bottom Dock), Split-Screen, модальные окна и Core Design System v2. |
+| 🚀 [**1. Быстрый старт: Первый плагин за 5 минут**](docs/01-getting-started.md) | Минимальная структура плагина, хуки жизненного цикла (`onFileOpen`, `onFileSave`), написание кода и способы локальной установки. |
+| 📄 [**2. Спецификация манифеста `plugin.json`**](docs/02-manifest-plugin-json.md) | Схема полей, зависимости SemVer (`dependencies` и `optionalDependencies`), сервисы (`providesServices`), права, вынесенная локализация (`local.json`) и встроенный агент (`agent`). |
+| 🛠️ [**3. Справочник JavaScript API (`window.ConfigStudio`)**](docs/03-javascript-api.md) | Все доступные методы: файлы, потоковые логи (`logs`), хуки файлов, кастомные вкладки (`openCustomTab`), нативный SSH/SFTP, Monaco Editor, контекстное меню, межплагинные сервисы, хранилище секретов (`secrets`), аппаратные метрики (`sysinfo`), компоненты (`ui.renderDropdown`) и `i18n`. |
+| 🎨 [**4. Кастомизация интерфейса и точки расширения**](docs/04-ui-customization.md) | 1-Click Action Toolbar (Split Button), контекстное меню, кастомные вкладки, Split-Webview, постоянная нижняя панель (Bottom Dock), Split-Screen, модальные окна и Core Design System v2. |
 | 🧠 [**5. Monaco Editor и Парсеры AST-структуры**](docs/05-monaco-and-outline.md) | Автодополнение (IntelliSense), сниппеты, регистрация кастомных Outline-провайдеров и алгоритм автоматической нормализации структуры. |
 | 🛡️ [**6. Исполнение команд на хосте и безопасность**](docs/06-terminal-and-security.md) | Модель Zero Trust (Fail-Secure), экран согласия (Consent Dialog), черный список команд, RPC Proxy Guard и журнал аудита (Core Audit Log). |
-| 📦 [**7. Упаковка, публикация и бинарный формат `.cspkg`**](docs/07-packaging-and-publishing.md) | Бинарный контейнер `.cspkg`, CLI-утилита `cspkg`, Smart Plugin-Embedded Agent Distribution, автоматизация через GitHub Actions и официальный каталог. |
+| 📦 [**7. Упаковка, публикация и бинарный формат `.cspkg`**](docs/07-packaging-and-publishing.md) | Бинарный контейнер `.cspkg`, CLI-утилита `cspkg`, вынесение словарей `local.json`, Smart Plugin-Embedded Agent Distribution, автоматизация через GitHub Actions и официальный каталог (Zero-Binary Registry). |
 
 ---
 
@@ -85,13 +85,14 @@ Config Studio реализует строгую модель безопасно�
 
 ## 📦 Способы распространения и установки
 
-1. **В 1 клик из каталога:** Через окно настроек из официального каталога [config-studio-plugins](https://github.com/config-studio/config-studio-plugins).
+1. **В 1 клик из каталога:** Через окно настроек из официального каталога [config-studio-plugins](https://github.com/config-studio/config-studio-plugins) (Zero-Binary Registry: пакеты хранятся в GitHub Releases репозиториев плагинов).
 2. **Бинарный пакет `.cspkg`:** Сверхбыстрый монолитный контейнер (по принципу MRS из Mihomo), читаемый ядром прямо в память без распаковки на диск. Собирается автономным CLI-компилятором `cspkg` ([скачать бинарники](https://github.com/config-studio/config-studio-plugin-docs/releases/tag/v1.0.0)).
 3. **Автоматизация через GitHub Actions:** Готовый workflow `.github/workflows/release.yml` для автоматической компиляции и прикрепления `.cspkg` к релизам тегов `v*`.
 4. **По ссылке на GitHub:** Автоматическая безопасная инспекция и установка из репозитория.
 5. **ZIP-архив:** Установка перетаскиванием (drag-and-drop) в интерфейс.
 6. **Dev Mode:** Локальная папка в `data/plugins/<id>/` для мгновенной правки кода без перезагрузки.
-7. **Smart Plugin-Embedded Distribution (v2.3.1+):** Встраивание скомпилированных бинарников удаленных демонов (`config-studio-agent` для `linux/amd64` и `linux/arm64`) прямо внутрь пакета `.cspkg`. Обеспечивает прямую установку агента на серверы по SFTP в изолированных средах (Air-Gapped) без локальной распаковки на диск клиента и с поддержкой двойного версионирования.
+7. **Вынесенная локализация (v2.3.6+):** Поддержка файлов `local.json` и `localization.json` рядом с `plugin.json` для чистоты манифеста и быстрой языковой локализации как интерфейса плагина, так и всего редактора.
+8. **Smart Plugin-Embedded Distribution (v2.3.1+):** Встраивание скомпилированных бинарников удаленных демонов (`config-studio-agent` для `linux/amd64` и `linux/arm64`) прямо внутрь пакета `.cspkg`. Обеспечивает прямую установку агента на серверы по SFTP в изолированных средах (Air-Gapped) без локальной распаковки на диск клиента и с поддержкой двойного версионирования.
 
 ---
 

@@ -1,10 +1,12 @@
 ﻿# My Awesome Plugin for Config Studio 🚀
 
-A plugin starter template for [Config Studio / Config Editor](https://github.com/config-studio/config-studio).
+A plugin starter template for [Config Studio](https://github.com/config-studio/config-studio) (v2.3.6+).
 
 ## Features
 - Toolbar button with interactive notifications.
 - Custom split-screen panel.
+- File lifecycle hooks (`onFileOpen`, `onFileSave`).
+- Built-in internationalization support.
 - Clean CSS styling.
 
 ## Installation

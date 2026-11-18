@@ -74,5 +74,18 @@
     }
   });
 
+  // 5. File Lifecycle Hooks (v2.3.6+)
+  if (typeof window.ConfigStudio.onFileOpen === 'function') {
+    window.ConfigStudio.onFileOpen((file) => {
+      console.log(`[${pluginId}] Opened file: ${file.path}`);
+    });
+  }
+
+  if (typeof window.ConfigStudio.onFileSave === 'function') {
+    window.ConfigStudio.onFileSave((file) => {
+      console.log(`[${pluginId}] Saved file: ${file.path}`);
+    });
+  }
+
   console.log(`[${pluginId}] Plugin loaded successfully.`);
 })();

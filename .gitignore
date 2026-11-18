@@ -1,4 +1,9 @@
-.DS_StorenThumbs.dbn*.lognnode_modules/
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+*.cspkg
+dist-pkg/
 
 # doubled-graph
 .doubled-graph/logs/

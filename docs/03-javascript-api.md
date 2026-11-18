@@ -6,7 +6,7 @@
 
 ## 📑 Содержание
 
-1. [Точки расширения UI (Панели, Тулбар, Меню, Шапка)](#1-точки-расширения-ui)
+1. [Точки расширения UI (Панели, Тулбар, Меню, Шапка, Webview)](#1-точки-расширения-ui)
 2. [Пользовательские вкладки в редакторе (`openCustomTab`)](#2-пользовательские-вкладки-в-редакторе-opencustomtab)
 3. [Нативный SSH и SFTP менеджер хостов](#3-нативный-ssh-и-sftp-менеджер-хостов)
 4. [Контекстное меню проводника файлов](#4-контекстное-меню-проводника-файлов)
@@ -15,11 +15,12 @@
 7. [Аппаратный мониторинг и телеметрия серверов (`sysinfo`)](#7-аппаратный-мониторинг-и-телеметрия-серверов-sysinfo)
 8. [Компоненты UI и Дизайн-система (`ui.renderDropdown`, `ui.toast`)](#8-компоненты-ui-и-дизайн-система)
 9. [Встроенная мультиязычность и переводы (`i18n`)](#9-встроенная-мультиязычность-и-переводы-i18n)
-10. [Работа с открытыми файлами и редактором](#10-работа-с-открытыми-файлами-и-редактором)
+10. [Работа с открытыми файлами, хуки и пакетное чтение](#10-работа-с-открытыми-файлами-и-редактором)
 11. [Интеграция с Monaco Editor и AST-картой](#11-интеграция-с-monaco-editor-и-ast-картой)
 12. [Выполнение системных команд на хосте](#12-выполнение-системных-команд-на-хосте)
 13. [Параметры и настройки плагина (`registerPluginSettings`)](#13-параметры-и-настройки-плагина)
 14. [Аудит, логирование и телеметрия ошибок](#14-аудит-логирование-и-телеметрия-ошибок)
+15. [Потоковое логирование и терминальные стримы (`logs`, v2.3.5+)](#15-потоковое-логирование-и-терминальные-стримы-logs)
 
 ---
 
@@ -90,6 +91,26 @@ window.ConfigStudio.registerHeaderItem({
     `;
   }
 });
+```
+
+### `registerSplitWebview(def)` / `toggleSplitWebview(id, updates)`
+Регистрирует или переключает изолированную веб-панель предпросмотра (Webview / IFrame) справа от редактора:
+
+```javascript
+// Регистрация сплит-панели с веб-сайтом или локальным сервером
+window.ConfigStudio.registerSplitWebview({
+  id: 'dev-server-preview',
+  pluginId: 'my-plugin',
+  title: 'Локальный сайт (:8085)',
+  url: 'http://localhost:8085',
+  refreshOnSave: true, // Автоперезагрузка IFrame при сохранении файла
+  open: true
+});
+
+// Управление отображением и перезагрузкой
+window.ConfigStudio.toggleSplitWebview('dev-server-preview');
+window.ConfigStudio.reloadSplitWebview('dev-server-preview');
+window.ConfigStudio.closeSplitWebview('dev-server-preview');
 ```
 
 ---
@@ -372,7 +393,25 @@ window.ConfigStudio.i18n.onLanguageChange((newLang) => {
 
 ---
 
-## 10. Работа с открытыми файлами и редактором
+## 10. Работа с открытыми файлами, хуки и пакетное чтение
+
+### `onFileOpen(callback)` / `onFileSave(callback)` *(v2.3.6+)*
+Реактивные хуки жизненного цикла файлов редактора. Позволяют плагину выполнять линтинг, валидацию или автосинхронизацию:
+
+```javascript
+// Перехват открытия любого файла в редакторе
+window.ConfigStudio.onFileOpen((file) => {
+  console.log(`Открыт файл: ${file.name}, путь: ${file.path}`);
+});
+
+// Перехват сохранения файла пользователем (Ctrl+S / автосейв)
+window.ConfigStudio.onFileSave((file) => {
+  console.log(`Файл сохранен: ${file.name}`);
+  if (file.name.endsWith('.conf')) {
+    window.ConfigStudio.showNotification('Конфигурация обновлена', 'info');
+  }
+});
+```
 
 ### `getActiveFile()`
 Возвращает объект активного файла: `{ name, path, content, ext, isDirty }` или `null`.
@@ -398,6 +437,31 @@ await window.ConfigStudio.openFile('configs/nginx.conf', { line: 42, highlight: 
 
 ### `refreshFiles()`
 Принудительно обновляет дерево проводника файлов на клиенте.
+
+### `fs.batchRead(options)` / `batchReadFiles(options)`
+Высокоскоростное пакетное чтение нескольких файлов за один HTTP-запрос (предотвращает эффект N+1 запросов):
+```javascript
+const result = await window.ConfigStudio.fs.batchRead({
+  paths: ['docker-compose.yml', 'nginx.conf', '.env'],
+  maxSizeBytes: 1024 * 1024
+});
+
+console.log('Прочитано файлов:', result.count);
+for (const [path, content] of Object.entries(result.files)) {
+  console.log(`Файл ${path}: ${content.length} байт`);
+}
+```
+
+### `sftpBatchRead(options)`
+Пакетное чтение файлов с удаленного сервера по SFTP за одну сессию без множественных реконнектов:
+```javascript
+const sftpResult = await window.ConfigStudio.sftpBatchRead({
+  host: '192.168.1.10',
+  port: 22,
+  user: 'root',
+  patterns: ['/etc/nginx/*.conf', '/etc/docker/daemon.json']
+});
+```
 
 ---
 
@@ -520,4 +584,42 @@ try {
 } catch (err) {
   window.ConfigStudio.telemetry.captureError(err, { context: 'deployment_phase' });
 }
+```
+
+---
+
+## 15. Потоковое логирование и терминальные стримы (`logs`)
+
+*(Доступно в Config Studio v2.3.5+)*
+
+Сервис `window.ConfigStudio.logs` позволяет плагинам открывать постоянные стримы журналов (systemd, Docker Compose, Tailscale, веб-сервера) и направлять структурированные логи напрямую во встроенный консольный просмотрщик нижней панели.
+
+### Методы API `logs`:
+- `logs.openStream(options)` — запускает или подключается к потоку логов команды и возвращает `sessionId`.
+- `logs.closeStream(id)` — завершает сессию стриминга.
+- `logs.getSessions()` — возвращает список всех активных сессий логов.
+- `logs.clear(id)` — очищает буфер строк для указанной сессии.
+- `logs.reconnect(id)` — выполняет реконнект к прерванному потоку.
+- `logs.subscribe(callback)` — реактивная подписка на изменения состояния стримов `(sessions, activeId) => void`.
+
+### Пример запуска стрима логов Docker Compose:
+```javascript
+// Запуск непрерывного чтения логов docker compose с открытием в доке
+const streamId = window.ConfigStudio.logs.openStream({
+  title: 'Traefik Proxy Logs',
+  source: 'traefik',
+  cmd: 'docker compose logs -f --tail=100 traefik',
+  sudo: false,
+  tail: 100
+});
+
+console.log('Сессия стриминга открыта:', streamId);
+
+// Подписка на обновление строк
+const unsubscribe = window.ConfigStudio.logs.subscribe((sessions, activeId) => {
+  const current = sessions.find(s => s.id === streamId);
+  if (current && current.status === 'error') {
+    console.error('Ошибка стриминга:', current.errorMessage);
+  }
+});
 ```

@@ -15,6 +15,7 @@ config-studio-my-plugin/
 ├── plugin.json             # Обязательный манифест
 ├── main.js                 # Точка входа JavaScript
 ├── style.css               # Стили (если используются)
+├── local.json              # Внешний словарь локализации или языкового пакета (v2.3.6+)
 ├── agents/                 # Скомпилированные бинарники агента (опционально для fleet-плагинов)
 │   ├── config-studio-agent-linux-amd64
 │   └── config-studio-agent-linux-arm64
@@ -191,6 +192,8 @@ jobs:
 
 Центральный каталог расширений Config Studio работает на базе **GitHub Pages** в репозитории [config-studio-plugins](https://github.com/config-studio/config-studio-plugins).
 
+> 🛡️ **Zero-Binary Policy:** Репозиторий каталога не содержит бинарных файлов `.cspkg` в git. Все бинарные пакеты распространяются исключительно через официальные GitHub Releases соответствующих репозиториев расширений (`downloadUrl`).
+
 Каталог хранит легковесный индекс `registry.json` и выступает указателем на последний релиз каждого расширения. Таким образом, плагины развиваются полностью независимо в собственных репозиториях.
 
 ### Как добавить свой плагин:
@@ -217,6 +220,7 @@ jobs:
       "description": "Short description in English"
     }
   },
+  "minAppVersion": "2.3.6",
   "tags": ["Tool", "Automation"]
 }
 ```
